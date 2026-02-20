@@ -1,3 +1,10 @@
+### 2.9.28 | 2026-02-19
+- Fixed an issue where the File Upload field includes `gform_hidden` class even when the input is not hidden.
+- Fixed an issue that prevents svgs from displaying in the Orbital theme.
+- Fixed a PHP fatal error that can occur during background task processing if an empty batch hasn't been deleted.
+- Fixed a PHP fatal error that can occur when sending telemetry data.
+- API: Fixed an issue with the `gform.products.getPaymentAmount()` method returning an incorrect value when the total is filtered via the `gform_product_total` filter.
+
 ### 2.9.27 | 2026-02-05
 - Fixed an issue that causes incorrect error messages about version requirements when updating network-activated add-ons.
 - Fixed an issue that prevents the merge tag drop down from rendering on the form settings notifications.

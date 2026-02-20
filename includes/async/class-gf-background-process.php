@@ -978,6 +978,10 @@ abstract class GF_Background_Process extends WP_Async_Request {
 			if ( ! is_object( $batch ) ) {
 				$this->log_debug( __METHOD__ . '(): Aborting. Getting the next batch returned empty or an invalid value.' );
 				break;
+			} elseif ( empty( $batch->data ) || ! is_array( $batch->data ) ) {
+				$this->log_debug( __METHOD__ . sprintf( '(): Batch %s is empty.', $batch->key ) );
+				$this->delete( $batch->key );
+				continue;
 			}
 
 			if ( is_multisite() ) {
