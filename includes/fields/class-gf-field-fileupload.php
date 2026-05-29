@@ -138,6 +138,7 @@ class GF_Field_FileUpload extends GF_Field {
 	 *
 	 * @since 1.9
 	 * @since 2.9.18 Updated to include the dynamic population setting.
+	 * @since 2.10.3 Removed the dynamic population setting.
 	 *
 	 * @return string[]
 	 */
@@ -155,7 +156,6 @@ class GF_Field_FileUpload extends GF_Field {
 			'visibility_setting',
 			'description_setting',
 			'css_class_setting',
-			'prepopulate_field_setting',
 		);
 	}
 
@@ -322,21 +322,9 @@ class GF_Field_FileUpload extends GF_Field {
 				}
 			}
 		} elseif ( isset( $file['url'] ) ) {
-			if ( ! GFCommon::is_valid_url( $file['url'] ) || empty( $file_name ) || ! str_contains( $file['url'], $file_name ) || empty( $file['hash'] ) || $this->get_populated_file_url_hash( $file ) !== $file['hash'] ) {
-				$message = $this->errorMessage ?: esc_html__( 'The file URL is not valid.', 'gravityforms' );
+			$message = $this->errorMessage ?: esc_html__( 'The file is not valid.', 'gravityforms' );
 
-				return $this->get_invalid_file_result( $file, $message, 'url' );
-			}
-
-			$args = array(
-				'allowed_extensions' => $this->get_clean_allowed_extensions(),
-			);
-
-			$validation = GFCommon::validate_file_url( $file['url'], $args );
-
-			if ( is_wp_error( $validation ) ) {
-				return $this->get_invalid_file_result( $file, $validation->get_error_message(), 'url' );
-			}
+			return $this->get_invalid_file_result( $file, $message, 'url' );
 		}
 
 		$allowed_extensions = $this->get_clean_allowed_extensions();
@@ -746,11 +734,6 @@ class GF_Field_FileUpload extends GF_Field {
 				continue;
 			}
 
-			// Skip dynamically populated file URLs.
-			if ( ! empty( $file['url'] ) ) {
-				continue;
-			}
-
 			/*
 			 * Allow add-ons and custom code to skip the file validation.
 			 *
@@ -888,17 +871,8 @@ class GF_Field_FileUpload extends GF_Field {
 				// File was previously uploaded to form; do not process temp.
 				$existing_file = $this->check_existing_entry( $entry_id, $input_name, $file );
 
-				if ( isset( $file['url'] ) ) {
-					// Saving dynamically populated file URLs that aren't already in the entry.
-					if ( ! is_string( $existing_file ) && GFCommon::is_valid_url( $file['url'] ) ) {
-						$uploaded_files[] = $file['url'];
-					}
+				if ( ! is_string( $existing_file ) ) {
 					continue;
-				}
-
-				// If existing file is an array, we need to get the filename to avoid a fatal.
-				if ( rgar( $existing_file, 'uploaded_filename' ) ) {
-					$existing_file = $existing_file['uploaded_filename'];
 				}
 
 				// We already have the file path in $existing_file, however it's good to check that the file path in the entry meta matches.
@@ -1082,11 +1056,6 @@ class GF_Field_FileUpload extends GF_Field {
 				GFCommon::log_debug( __METHOD__ . '(): Calling upload_file.' );
 				$value = $this->upload_file( $form_id, $files['new'][0] );
 			}
-		} elseif ( ! empty( $files['existing'][0]['url'] ) ) {
-			if ( GFCommon::is_valid_url( $files['existing'][0]['url'] ) ) {
-				GFCommon::log_debug( __METHOD__ . '(): Saving provided URL, not uploading file.' );
-				$value = $files['existing'][0]['url'];
-			}
 		} elseif ( ! empty( $files['existing'][0]['temp_filename'] ) ) {
 			$tmp_path = rgar( GFFormsModel::get_tmp_upload_location( $form_id ), 'path' );
 			if ( empty( $tmp_path ) ) {
@@ -1104,13 +1073,6 @@ class GF_Field_FileUpload extends GF_Field {
 
 			GFCommon::log_debug( __METHOD__ . '(): File already uploaded to tmp folder, moving.' );
 			$value = $this->move_temp_file( $form_id, $files['existing'][0] );
-		} else {
-			// Field was populated with only the name of an existing file.
-			$file_name = rgars( $files['existing'], '0/uploaded_filename' );
-			if ( ! empty( $file_name ) ) {
-				GFCommon::log_debug( __METHOD__ . '(): Saving provided filename, not uploading file.' );
-				$value = $file_name;
-			}
 		}
 
 		if ( empty( $value ) ) {
@@ -1938,9 +1900,10 @@ class GF_Field_FileUpload extends GF_Field {
 	}
 
 	/**
-	 * Supports using the dynamic population feature to populate the field on initial form display with file URLs.
+	 * Gets the input value without hydrating public dynamic population values as uploaded files.
 	 *
 	 * @since 2.9.18
+	 * @since 2.10.3 Removed support for dynamic population.
 	 *
 	 * @param string $standard_name            The input name used when accessing the $_POST.
 	 * @param string $custom_name              The dynamic population parameter name.
@@ -1950,22 +1913,7 @@ class GF_Field_FileUpload extends GF_Field {
 	 * @return array|string|null
 	 */
 	public function get_input_value_submission( $standard_name, $custom_name = '', $field_values = array(), $get_from_post_global_var = true ) {
-		$value = parent::get_input_value_submission( $standard_name, $custom_name, $field_values, $get_from_post_global_var );
-
-		if ( ! $this->allowsPrepopulate ) {
-			return $value;
-		}
-
-		$is_not_file_input = $standard_name !== 'input_' . absint( $this->id ); // Needed for Post Image field.
-		$is_submission     = ! empty( $_POST[ 'is_submit_' . absint( $this->formId ) ] ) && $get_from_post_global_var; // phpcs:ignore WordPress.Security.NonceVerification.Missing
-
-		if ( $is_not_file_input || $is_submission ) {
-			return $value;
-		}
-
-		$this->populate_file_urls_from_value( $value );
-
-		return $value;
+		return parent::get_input_value_submission( $standard_name, $custom_name, $field_values, $get_from_post_global_var );
 	}
 
 	/**

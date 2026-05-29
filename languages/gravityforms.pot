@@ -2,14 +2,14 @@
 # This file is distributed under the GPL-2.0+.
 msgid ""
 msgstr ""
-"Project-Id-Version: Gravity Forms 2.10.2\n"
+"Project-Id-Version: Gravity Forms 2.10.3\n"
 "Report-Msgid-Bugs-To: https://gravityforms.com/support\n"
 "Last-Translator: Gravity Forms <support@gravityforms.com>\n"
 "Language-Team: Gravity Forms <support@gravityforms.com>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-13T23:57:21+00:00\n"
+"POT-Creation-Date: 2026-05-28T22:13:17+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: gravityforms\n"
@@ -379,7 +379,7 @@ msgstr ""
 #: includes/class-confirmation.php:521
 #: includes/fields/class-gf-field-captcha.php:165
 #: includes/fields/class-gf-field-captcha.php:483
-#: includes/fields/class-gf-field-fileupload.php:1166
+#: includes/fields/class-gf-field-fileupload.php:1128
 #: includes/fields/class-gf-field-post-image.php:216
 #: includes/license/class-gf-license-statuses.php:48
 #: includes/license/class-gf-license-statuses.php:58
@@ -2213,7 +2213,7 @@ msgstr ""
 #: forms_model.php:1991
 #: forms_model.php:2024
 #: forms_model.php:2060
-#: forms_model.php:8720
+#: forms_model.php:8733
 #: includes/api.php:131
 #: includes/api.php:158
 #: includes/api.php:180
@@ -2315,24 +2315,24 @@ msgstr ""
 msgid "Spam Confirmation"
 msgstr ""
 
-#: forms_model.php:8712
+#: forms_model.php:8725
 msgid "Updating the id property is not supported"
 msgstr ""
 
-#: forms_model.php:8716
+#: forms_model.php:8729
 msgid "%s is not a valid feed property"
 msgstr ""
 
-#: forms_model.php:8726
+#: forms_model.php:8739
 msgid "Feed meta should be an associative array or JSON"
 msgstr ""
 
-#: forms_model.php:8743
+#: forms_model.php:8756
 #: includes/api.php:2229
 msgid "There was an error while updating feed id %s"
 msgstr ""
 
-#: forms_model.php:8747
+#: forms_model.php:8760
 #: includes/api.php:2185
 msgid "Feed id %s not found"
 msgstr ""
@@ -8345,7 +8345,7 @@ msgid "This type of file is not allowed. Must be one of the following: "
 msgstr ""
 
 #: includes/config/items/class-gf-config-multifile.php:27
-#: includes/fields/class-gf-field-fileupload.php:685
+#: includes/fields/class-gf-field-fileupload.php:673
 msgid "Delete this file"
 msgstr ""
 
@@ -10325,84 +10325,81 @@ msgid "There was an error while uploading the file. Error code: %d."
 msgstr ""
 
 #: includes/fields/class-gf-field-fileupload.php:311
+#: includes/fields/class-gf-field-fileupload.php:325
 msgid "The file is not valid."
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:326
-msgid "The file URL is not valid."
-msgstr ""
-
-#: includes/fields/class-gf-field-fileupload.php:347
+#: includes/fields/class-gf-field-fileupload.php:335
 #: includes/upload.php:348
 msgid "The uploaded file type is not allowed."
 msgstr ""
 
 #. translators: %s: comma-separated list of allowed file extensions.
-#: includes/fields/class-gf-field-fileupload.php:357
+#: includes/fields/class-gf-field-fileupload.php:345
 msgid "The uploaded file type is not allowed. Must be one of the following: %s."
 msgstr ""
 
 #. translators: %1$d: the number of submitted files. %2$d: the allowed limit.
-#: includes/fields/class-gf-field-fileupload.php:397
+#: includes/fields/class-gf-field-fileupload.php:385
 msgid "Number of files (%1$d) exceeds limit (%2$d)."
 msgstr ""
 
 #. translators: %d: the number of invalid files.
-#: includes/fields/class-gf-field-fileupload.php:431
+#: includes/fields/class-gf-field-fileupload.php:419
 msgid "%d file is invalid."
 msgid_plural "%d files are invalid."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/fields/class-gf-field-fileupload.php:483
+#: includes/fields/class-gf-field-fileupload.php:471
 msgid "Accepted file types: %s"
 msgstr ""
 
 #. translators: %s is replaced with a numeric string representing the maximum file size
-#: includes/fields/class-gf-field-fileupload.php:488
+#: includes/fields/class-gf-field-fileupload.php:476
 msgid "Max. file size: %s"
 msgstr ""
 
 #. translators: %s is replaced with a numeric string representing the maximum number of files
-#: includes/fields/class-gf-field-fileupload.php:493
+#: includes/fields/class-gf-field-fileupload.php:481
 msgid "Max. files: %s"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:531
+#: includes/fields/class-gf-field-fileupload.php:519
 msgid "Allowed Files"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:551
+#: includes/fields/class-gf-field-fileupload.php:539
 msgid "Drop files here or"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:552
+#: includes/fields/class-gf-field-fileupload.php:540
 msgid "Select files"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:623
+#: includes/fields/class-gf-field-fileupload.php:611
 msgid "Download file"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:624
-#: includes/fields/class-gf-field-fileupload.php:676
+#: includes/fields/class-gf-field-fileupload.php:612
+#: includes/fields/class-gf-field-fileupload.php:664
 msgid "Delete file"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:625
+#: includes/fields/class-gf-field-fileupload.php:613
 msgid "View file"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:1157
+#: includes/fields/class-gf-field-fileupload.php:1119
 msgid "%d files"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:1166
+#: includes/fields/class-gf-field-fileupload.php:1128
 #: includes/fields/class-gf-field-post-image.php:215
 msgid "View the image"
 msgstr ""
 
-#: includes/fields/class-gf-field-fileupload.php:1238
+#: includes/fields/class-gf-field-fileupload.php:1200
 msgid "Click to view"
 msgstr ""
 

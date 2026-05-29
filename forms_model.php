@@ -8586,7 +8586,8 @@ class GFFormsModel {
 	 * $_POST['gform_uploaded_files'] and caches them in GFFormsModel::$uploaded_files.
 	 *
 	 * @since 2.4.3.5
-	 * @since 2.9.18 Deprecated the string-based (file/basename) input value. Added support for dynamically populated file URLs using the `url` key.
+	 * @since 2.9.18 Added support for dynamically populated file URLs using the `url` key.
+	 * @since 2.10.3 Deprecated the string-based (file/basename) input value.
 	 *
 	 * @param int $form_id The ID of the form the submission is being processed for.
 	 *
@@ -8612,6 +8613,12 @@ class GFFormsModel {
 							continue;
 						}
 
+						if ( isset( $file['url'] ) ) {
+							GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing Url %s. File uploads must be submitted as binary uploads.', $input_name ) );
+							unset( $input_files[ $key ] );
+							continue;
+						}
+
 						// All files regardless of upload or population method should have this.
 						if ( isset( $file['uploaded_filename'] ) ) {
 							$file['uploaded_filename'] = sanitize_file_name( wp_basename( $file['uploaded_filename'] ) );
@@ -8622,11 +8629,6 @@ class GFFormsModel {
 							$file['temp_filename'] = sanitize_file_name( wp_basename( $file['temp_filename'] ) );
 						}
 
-						// Used when the field is dynamically populated on initial form display.
-						if ( isset( $file['url'] ) ) {
-							$file['url'] = esc_url_raw( $file['url'] );
-						}
-
 						// Sanitize or generate the UUID to be used by the file preview and error messages markup.
 						if ( isset( $file['id'] ) ) {
 							$file['id'] = sanitize_key( $file['id'] );
@@ -8634,8 +8636,19 @@ class GFFormsModel {
 							$file['id'] = GFFormsModel::get_uuid();
 						}
 					}
+
+					$input_files = array_values( $input_files );
+					if ( empty( $input_files ) ) {
+						unset( $files[ $input_name ] );
+					}
 				}
 			} else {
+				if ( GFCommon::is_valid_url( $input_files ) ) {
+					GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing URL %s. File uploads must be submitted as binary uploads.', $input_name ) );
+					unset( $files[ $input_name ] );
+					continue;
+				}
+
 				// Deprecated, retaining for backwards compatibility with third-party integrations.
 				$input_files = wp_basename( $input_files );
 			}

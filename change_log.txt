@@ -1,3 +1,8 @@
+### 2.10.3 | 2026-05-28
+- Added security enhancements.
+- Removed a console Log of Feeds that is displaying in the frontend.
+- Removed dynamic population for the File Upload field.
+
 ### 2.10.2 | 2026-05-13
 - Added security enhancements.
 - Added background processing for entry bulk actions.

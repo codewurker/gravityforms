@@ -3,7 +3,7 @@
  * AJAX endpoint for cancelling bulk actions.
  *
  * @package Gravity_Forms\Gravity_Forms\Bulk_Actions\Endpoints
- * @since   next
+ * @since 2.10.3
  */
 
 namespace Gravity_Forms\Gravity_Forms\Bulk_Actions\Endpoints;
