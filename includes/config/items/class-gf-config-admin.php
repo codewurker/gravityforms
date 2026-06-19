@@ -47,6 +47,11 @@ class GF_Config_Admin extends GF_Config {
 					'edit_form'   => esc_html__( 'Edit Form', 'gravityforms' ),
 					'insert_form' => esc_html__( 'Insert Form', 'gravityforms' ),
 				),
+				'dialog' => array(
+					'cancel' => esc_html__( 'Cancel', 'gravityforms' ),
+					'close'  => esc_html__( 'Close', 'gravityforms' ),
+					'ok'     => esc_html__( 'OK', 'gravityforms' ),
+				),
 			),
 			'bulk_actions' => $this->get_bulk_action_config(),
 		);

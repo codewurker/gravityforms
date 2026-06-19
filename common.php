@@ -2225,7 +2225,7 @@ class GFCommon {
 
 		// Running through variable replacement
 		$to        = GFCommon::remove_extra_commas( GFCommon::replace_variables( $email_to, $form, $lead, false, false, false, 'text', $data ) );
-		$subject   = GFCommon::replace_variables( rgar( $notification, 'subject' ), $form, $lead, false, false, false, 'text', $data );
+		$subject   = html_entity_decode( GFCommon::replace_variables( rgar( $notification, 'subject' ), $form, $lead, false, false, false, 'text', $data ) );
 		$from      = GFCommon::replace_variables( rgar( $notification, 'from' ), $form, $lead, false, false, false, 'text', $data );
 		$from_name = GFCommon::replace_variables( rgar( $notification, 'fromName' ), $form, $lead, false, false, false, 'text', $data );
 		$bcc       = GFCommon::remove_extra_commas( GFCommon::replace_variables( rgar( $notification, 'bcc' ), $form, $lead, false, false, false, 'text', $data ) );

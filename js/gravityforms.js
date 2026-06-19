@@ -2898,6 +2898,7 @@ function gformValidateFileSize( field, max_file_size ) {
 				if (response.status && response.status == 'ok') {
 					response.data.id = file.id;
 					addFile(fieldId, response.data);
+					window.wp.a11y.speak( ( strings.file_uploaded ) + ': ' + uploadedName );
 				} else {
 					addMessage(up.settings.gf_vars.message_id, strings.unknown_error + ': ' + file.name);
 				}

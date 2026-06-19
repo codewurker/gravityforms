@@ -1,3 +1,19 @@
+### 2.10.4 | 2026-06-18
+- Added logging details when fields fail validation.
+- Fixed an issue where the REST API modal creates duplicate API keys.
+- Fixed use of double slash in the path while checking for an existing index.html in the form upload root.
+- Fixed warning when trying to add the index.html file to a month upload folder that doesn't exist yet.
+- Fixed an issue where the subject in notification email can contain encoded symbols.
+- Fixed use of `esc_attr__()` for variables where it wasn't needed.
+- Fixed an issue that caused deprecation notices on the block editor page.
+- Fixed a PHP fatal error that can occur when using an existing save & continue resume link after a consent field is added to the form.
+- Updated the v1 API impersonate account dropdown to use the AJAX search.
+- Updated browser alerts in the admin to use the Dialog component.
+- Updated the minimum WordPress version (for support) on the System Status page to 6.9.
+- Updated the merge tag dropdowns to have a unique IDs.
+- Updated File Upload field handling to preserve trusted signed URL records during edit flows.
+- Updated the About page in System Status to redirect to the gravityforms.com releases page.
+
 ### 2.10.3 | 2026-05-28
 - Added security enhancements.
 - Removed a console Log of Feeds that is displaying in the frontend.

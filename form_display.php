@@ -1614,8 +1614,8 @@ class GFFormDisplay {
 				$field_value = rgar( $submitted_values, $field->id );
 
 				if ( $field->type === 'consent'
-					&& ( $field_value[ $field->id . '.3' ] != GFFormsModel::get_latest_form_revisions_id( $form['id'] )
-						|| $field_value[ $field->id . '.2' ] != $field->checkboxLabel ) ) {
+					&& ( (int) rgar( $field_value, $field->id . '.3' ) !== (int) GFFormsModel::get_latest_form_revisions_id( $form['id'] )
+						|| rgar( $field_value, $field->id . '.2' ) !== $field->checkboxLabel ) ) {
 					$field_value = GFFormsModel::get_field_value( $field, $field_values );
 				}
 			} else {
@@ -2535,6 +2535,8 @@ class GFFormDisplay {
 
 		$gform_validation_args = array( 'gform_validation', $form_id );
 		if ( ! gf_has_filter( $gform_validation_args ) ) {
+			self::log_field_validation_errors( $form['fields'] );
+
 			return $is_valid;
 		}
 
@@ -2568,7 +2570,34 @@ class GFFormDisplay {
 		$form                   = $validation_result['form'];
 		$failed_validation_page = $validation_result['failed_validation_page'];
 
+		self::log_field_validation_errors( $form['fields'] );
+
 		return $is_valid;
+	}
+
+	/**
+	 * Add logging statements for any fields failing validation.
+	 *
+	 * @since 2.10.4
+	 *
+	 * @param array $fields The fields being validated.
+	 *
+	 * @return void
+	 */
+	private static function log_field_validation_errors( $fields ) {
+
+		// Log any fields failing validation.
+		foreach ( $fields as &$field ) {
+			if ( $field->failed_validation ) {
+				GFCommon::log_error( __METHOD__ . "(): Field {$field->label} ({$field->id} - {$field->type}) failed validation. Validation message: " . sanitize_text_field( $field->validation_message ) );
+			}
+
+			// If this is a repeater, process its subfields.
+			if ( isset( $field->fields ) && is_array( $field->fields ) ) {
+				self::log_field_validation_errors( $field->fields );
+			}
+		}
+
 	}
 
 	/**

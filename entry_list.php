@@ -1021,7 +1021,7 @@ final class GF_Entry_List_Table extends WP_List_Table {
 		if ( $column_id == $primary ) {
 			$edit_url = $this->get_detail_url( $entry );
 			$aria_label = sprintf( esc_html__( 'View entry number %s', 'gravityforms' ), $entry['id'] );
-			$column_value = '<a aria-label="' . esc_attr__( $aria_label ) . '" href="' . $edit_url . '">' . $value . '</a>';
+			$column_value = '<a aria-label="' . esc_attr( $aria_label ) . '" href="' . $edit_url . '">' . $value . '</a>';
 
 			/**
 			 * Used to inject markup and replace the value of any primary/first column in the entry list grid.
@@ -1410,12 +1410,22 @@ final class GF_Entry_List_Table extends WP_List_Table {
 			return;
 		}
 
-		$message      = $filter == 'trash' ? esc_html__( "WARNING! This operation cannot be undone. Empty trash? 'Ok' to empty trash. 'Cancel' to abort.", 'gravityforms' ) : esc_html__( "WARNING! This operation cannot be undone. Permanently delete all spam? 'Ok' to delete. 'Cancel' to abort.", 'gravityforms' );
-		$button_label = $filter == 'trash' ? __( 'Empty Trash', 'gravityforms' ) : __( 'Delete All Spam', 'gravityforms' );
+		$confirm_message = $filter === 'trash'
+			? esc_html__( "WARNING! This operation cannot be undone. Empty trash? 'Ok' to empty trash. 'Cancel' to abort.", 'gravityforms' )
+			: esc_html__( "WARNING! This operation cannot be undone. Permanently delete all spam? 'Ok' to delete. 'Cancel' to abort.", 'gravityforms' );
+
+		$button_label = $filter === 'trash'
+			? __( 'Empty Trash', 'gravityforms' )
+			: __( 'Delete All Spam', 'gravityforms' );
 		?>
-		<input type="submit" class="button" name="button_delete_permanently"
-			   value="<?php echo esc_attr( $button_label ); ?>"
-			   onclick="return confirm('<?php echo esc_js( $message ) ?>');"/>
+		<input
+			type="submit"
+			class="button"
+			name="button_delete_permanently"
+			value="<?php echo esc_attr( $button_label ); ?>"
+			data-dialog-title="<?php echo esc_attr( $button_label ); ?>"
+			data-dialog-confirm="<?php echo esc_attr( $confirm_message ); ?>"
+		/>
 		<?php
 	}
 

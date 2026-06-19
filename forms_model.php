@@ -8605,16 +8605,18 @@ class GFFormsModel {
 				continue;
 			}
 
+			$field = null;
+			if ( preg_match( '/^input_(\d+)$/', $input_name, $matches ) ) {
+				$field = GFFormsModel::get_field( $form_id, $matches[1] );
+				if ( $field instanceof GF_Field_FileUpload ) {
+					$field->formId = (int) $form_id;
+				}
+			}
+
 			if ( is_array( $input_files ) ) {
 				if ( isset( $input_files[0] ) && is_array( $input_files[0] ) ) {
 					foreach ( $input_files as $key => &$file ) {
 						if ( empty( $file ) ) {
-							unset( $input_files[ $key ] );
-							continue;
-						}
-
-						if ( isset( $file['url'] ) ) {
-							GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing Url %s. File uploads must be submitted as binary uploads.', $input_name ) );
 							unset( $input_files[ $key ] );
 							continue;
 						}
@@ -8634,6 +8636,17 @@ class GFFormsModel {
 							$file['id'] = sanitize_key( $file['id'] );
 						} else {
 							$file['id'] = GFFormsModel::get_uuid();
+						}
+
+						if ( isset( $file['url'] ) ) {
+							$file['url']  = esc_url_raw( $file['url'] );
+							$file['hash'] = isset( $file['hash'] ) ? sanitize_text_field( $file['hash'] ) : '';
+
+							if ( ! $field instanceof GF_Field_FileUpload || ! $field->is_valid_populated_file_url( $file ) ) {
+								GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing URL %s. File uploads must be submitted as binary uploads.', $input_name ) );
+								unset( $input_files[ $key ] );
+								continue;
+							}
 						}
 					}
 
