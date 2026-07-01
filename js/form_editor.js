@@ -1440,7 +1440,16 @@ function TogglePageBreakSettings(){
 
 function SetDisableQuantity(isChecked){
 	SetFieldProperty('disableQuantity', isChecked);
-	if(isChecked)
+
+	let hasQtyField = false;
+	if ( ! isChecked ) {
+		// Ensure the qty input remains hidden if there is a linked quantity field.
+		const productFieldID = parseInt( field.id, 10 );
+		const qtyFields = GetFieldsByType( [ 'quantity' ] );
+		hasQtyField = qtyFields.some( qtyField => parseInt( qtyField.productField, 10 ) === productFieldID );
+	}
+
+	if(isChecked || hasQtyField)
 		jQuery(".field_selected .ginput_quantity_label, .field_selected .ginput_quantity").hide();
 	else
 		jQuery(".field_selected .ginput_quantity_label, .field_selected .ginput_quantity").show();

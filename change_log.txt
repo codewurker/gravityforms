@@ -1,3 +1,16 @@
+### 2.10.5 | 2026-06-30
+- Added security enhancements.
+- Fixed an issue that prevents a "CONTAINS" conditional logic rule from being evaluated properly when the target field value contains a pipe (`|`) character.
+- Fixed an issue that prevents personal data from being erased or exported on sites with more than 60 forms.
+- Fixed an issue that prevents the file upload field from correctly saving a mix of new and existing uploaded files.
+- Fixed an issue that prevents bulk entry editing from working when entries are filtered by search criteria.
+- Fixed an issue in the form editor where the quantity input for a Single Product field with a linked Quantity field is displayed in the field preview when the field settings load.
+- Fixed an issue where toggles cannot be disabled in settings.
+- Fixed an issue that causes too many screen reader announcements when bulk editing entries.
+- Fixed an issue that prevents the "Custom CSS" block setting introduced in WordPress 7.0 from working on the first form embedded in a page.
+- Fixed an issue where the Entry List page shows an empty page when the site has no forms.
+- API: Fixed a PHP deprecation notice that occurs when `null` is passed to the first argument of `rgget()` or `GFForms::get()`.
+
 ### 2.10.4 | 2026-06-18
 - Added logging details when fields fail validation.
 - Fixed an issue where the REST API modal creates duplicate API keys.

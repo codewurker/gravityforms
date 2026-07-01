@@ -921,6 +921,8 @@ class GF_Field_FileUpload extends GF_Field {
 				$existing_file = $this->check_existing_entry( $entry_id, $input_name, $file );
 
 				if ( ! is_string( $existing_file ) ) {
+					$uploaded_path    = GFFormsModel::get_file_upload_path( $form_id, $existing_file['uploaded_filename'], false );
+					$uploaded_files[] = $uploaded_path['url'];
 					continue;
 				}
 
@@ -1401,7 +1403,7 @@ class GF_Field_FileUpload extends GF_Field {
 	 * @return string
 	 */
 	public function get_download_url( $file, $force_download = false, $entry_id = 0 ) {
-		$download_url = $file;
+		$download_url = str_replace( ' ', '', $file );
 
 		$secure_download_location = true;
 
@@ -1442,6 +1444,7 @@ class GF_Field_FileUpload extends GF_Field {
 		// The upload root is calculated using the WP Salts so if the WP Salts have changed then file can't be located during the download request.
 		if ( str_contains( $file, $upload_root ) ) {
 			$file         = str_replace( $upload_root, '', $file );
+			$file         = str_replace( ' ', '', $file );
 			$download_url = site_url( 'index.php' );
 			$args         = array(
 				'gf-download' => urlencode( $file ),

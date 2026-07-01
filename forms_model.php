@@ -3727,6 +3727,7 @@ class GFFormsModel {
 					}
 
 					$name    = rgar( $file, 'temp_filename' );
+					$name    = ! empty( $name ) ? sanitize_file_name( wp_basename( $name ) ) : '';
 					$value[] = array(
 						'tmp_path'      => $name ? $tmp_path . $name : '',
 						'tmp_url'       => rgar( $file, 'url', $name ? $tmp_url . $name : '' ),
@@ -3756,9 +3757,10 @@ class GFFormsModel {
 					}
 
 					$name    = rgar( $file_info, 'temp_filename' );
+					$name    = ! empty( $name ) ? sanitize_file_name( wp_basename( $name ) ) : '';
 					$value[] = array(
-						'tmp_path'      => $tmp_path . $name,
-						'tmp_url'       => $tmp_url . $name,
+						'tmp_path'      => $name ? $tmp_path . $name : '',
+						'tmp_url'       => $name ? $tmp_url . $name : '',
 						'tmp_name'      => $name,
 						'uploaded_name' => rgar( $file_info, 'uploaded_filename' ),
 					);
@@ -3976,7 +3978,7 @@ class GFFormsModel {
 			$field_value = array_values( $field_value ); // Returning array values, ignoring keys if array is associative.
 			$match_count = 0;
 			foreach ( $field_value as $val ) {
-				$val = GFFormsModel::maybe_trim_input( GFCommon::get_selection_value( $val ), $form_id, $source_field );
+				$val = GFFormsModel::maybe_trim_input( GFCommon::get_selection_value( $val, $source_field ), $form_id, $source_field );
 				if ( self::matches_conditional_operation( $val, $target_value, $operation ) ) {
 					$match_count ++;
 				}
@@ -3987,7 +3989,7 @@ class GFFormsModel {
 			$must_match_all = ( $operation == 'isnot' && ! rgblank( $target_value ) ) || ( $operation == 'is' && rgblank( $target_value ) );
 			$is_match = $must_match_all ? $match_count == count( $field_value ) : $match_count > 0;
 
-		} else if ( self::matches_conditional_operation( GFFormsModel::maybe_trim_input( GFCommon::get_selection_value( $field_value ), $form_id, $source_field ), $target_value, $operation ) ) {
+		} else if ( self::matches_conditional_operation( GFFormsModel::maybe_trim_input( GFCommon::get_selection_value( $field_value, $source_field ), $form_id, $source_field ), $target_value, $operation ) ) {
 			$is_match = true;
 		}
 
@@ -8614,46 +8616,45 @@ class GFFormsModel {
 			}
 
 			if ( is_array( $input_files ) ) {
-				if ( isset( $input_files[0] ) && is_array( $input_files[0] ) ) {
-					foreach ( $input_files as $key => &$file ) {
-						if ( empty( $file ) ) {
+				foreach ( $input_files as $key => &$file ) {
+					if ( empty( $file ) || ! is_array( $file ) ) {
+						unset( $input_files[ $key ] );
+						continue;
+					}
+
+					// All files regardless of upload or population method should have this.
+					if ( isset( $file['uploaded_filename'] ) ) {
+						$file['uploaded_filename'] = sanitize_file_name( wp_basename( $file['uploaded_filename'] ) );
+					}
+
+					// All multi-file uploads should have this. Single file uploads should have it once a submission or pagination request has been processed.
+					if ( isset( $file['temp_filename'] ) ) {
+						$file['temp_filename'] = sanitize_file_name( wp_basename( $file['temp_filename'] ) );
+					}
+
+					// Sanitize or generate the UUID to be used by the file preview and error messages markup.
+					if ( isset( $file['id'] ) ) {
+						$file['id'] = sanitize_key( $file['id'] );
+					} else {
+						$file['id'] = GFFormsModel::get_uuid();
+					}
+
+					if ( isset( $file['url'] ) ) {
+						$file['url']  = esc_url_raw( $file['url'] );
+						$file['hash'] = isset( $file['hash'] ) ? sanitize_text_field( $file['hash'] ) : '';
+
+						if ( ! $field instanceof GF_Field_FileUpload || ! $field->is_valid_populated_file_url( $file ) ) {
+							GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing URL %s. File uploads must be submitted as binary uploads.', $input_name ) );
 							unset( $input_files[ $key ] );
 							continue;
 						}
-
-						// All files regardless of upload or population method should have this.
-						if ( isset( $file['uploaded_filename'] ) ) {
-							$file['uploaded_filename'] = sanitize_file_name( wp_basename( $file['uploaded_filename'] ) );
-						}
-
-						// All multi-file uploads should have this. Single file uploads should have it once a submission or pagination request has been processed.
-						if ( isset( $file['temp_filename'] ) ) {
-							$file['temp_filename'] = sanitize_file_name( wp_basename( $file['temp_filename'] ) );
-						}
-
-						// Sanitize or generate the UUID to be used by the file preview and error messages markup.
-						if ( isset( $file['id'] ) ) {
-							$file['id'] = sanitize_key( $file['id'] );
-						} else {
-							$file['id'] = GFFormsModel::get_uuid();
-						}
-
-						if ( isset( $file['url'] ) ) {
-							$file['url']  = esc_url_raw( $file['url'] );
-							$file['hash'] = isset( $file['hash'] ) ? sanitize_text_field( $file['hash'] ) : '';
-
-							if ( ! $field instanceof GF_Field_FileUpload || ! $field->is_valid_populated_file_url( $file ) ) {
-								GFCommon::log_debug( __METHOD__ . sprintf( '(): Removing URL %s. File uploads must be submitted as binary uploads.', $input_name ) );
-								unset( $input_files[ $key ] );
-								continue;
-							}
-						}
 					}
+				}
+				unset( $file );
 
-					$input_files = array_values( $input_files );
-					if ( empty( $input_files ) ) {
-						unset( $files[ $input_name ] );
-					}
+				$input_files = array_values( $input_files );
+				if ( empty( $input_files ) ) {
+					unset( $files[ $input_name ] );
 				}
 			} else {
 				if ( GFCommon::is_valid_url( $input_files ) ) {

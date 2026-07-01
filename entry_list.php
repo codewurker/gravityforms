@@ -85,12 +85,8 @@ class GFEntryList {
 
 		}
 
-		if ( sizeof( $forms ) == 0 ) {
-			?>
-			<div style="margin:50px 0 0 10px;">
-				<?php echo sprintf( esc_html__( "You don't have any active forms. Let's go %screate one%s", 'gravityforms' ), '<a href="?page=gf_new_form">', '</a>' ); ?>
-			</div>
-			<?php
+		if ( sizeof( $forms ) === 0 ) {
+			self::leads_page( 0 );
 		} else {
 			if ( empty( $form_id ) ) {
 				$form_id = $forms[0]->id;
@@ -316,19 +312,35 @@ class GFEntryList {
 			return;
 		}
 
-		$form = GFFormsModel::get_form_meta( $form_id );
-		if ( empty( $form['id'] ) ) {
-			GFCommon::add_error_message( esc_html__( "Oops! We couldn't find your form. Please try again.", 'gravityforms' ) );
-			GFForms::admin_header();
+		$form    = GFFormsModel::get_form_meta( $form_id );
+		$no_form = empty( $form['id'] );
 
-			return;
+		if ( $no_form ) {
+			$form = array(
+				'id'            => 0,
+				'title'         => '',
+				'fields'        => array(),
+				'notifications' => array(),
+			);
 		}
 
 		$table = new GF_Entry_List_Table( array( 'form_id' => $form_id, 'form' => $form ) );
 
 		wp_print_styles( array( 'thickbox', 'gform_settings' ) );
 		GFForms::admin_header();
-		$table->prepare_items();
+
+		if ( $no_form ) {
+			$table->items = array();
+			$table->set_pagination_args(
+				array(
+					'total_items' => 0,
+					'per_page'    => 20,
+				)
+			);
+		} else {
+			$table->prepare_items();
+		}
+
 		$table->output_scripts();
 		?>
 			<form id="entry_list_form" method="post" class="gform-settings-panel__content gform-settings-panel__content--entry-list">
@@ -457,11 +469,8 @@ class GFEntryList {
 
 	public static function get_filter_links( $form, $include_counts = true ) {
 		$form_id = absint( rgar( $form, 'id' ) );
-		if ( empty( $form_id ) ) {
-			return array();
-		}
+		$counts  = ( ! empty( $form_id ) && $include_counts ) ? GFFormsModel::get_form_counts( $form_id ) : array();
 
-		$counts       = $include_counts ? GFFormsModel::get_form_counts( $form_id ) : array();
 		$filter_links = array(
 			array(
 				'id'            => 'all',
@@ -1137,35 +1146,43 @@ final class GF_Entry_List_Table extends WP_List_Table {
 	/**
 	 * Displays the no items message according to the context.
 	 */
-	function no_items() {
+	public function no_items() {
 
-		switch ( $this->filter ) {
-			case 'unread' :
-				$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any unread entries matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any unread entries.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				break;
+		$no_forms = $this->_form['id'] === 0 ? true : false;
+		/* translators: %1 opening <a> tag, %2 closing <a> tag */
+		$no_forms_message = sprintf( esc_html__( "You don't have any forms. Let's go %1\$screate one%2\$s!", 'gravityforms' ), '<a href="admin.php?page=gf_new_form">', '</a>' );
 
-			case 'star' :
-				$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any starred entries matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any starred entries.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				break;
+		if ( $no_forms ) {
+			echo wp_kses_post( $no_forms_message );
+		} else {
+			switch ( $this->filter ) {
+				case 'unread':
+					$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any unread entries matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any unread entries.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					break;
 
-			case 'spam' :
-				$message = esc_html__( 'This form does not have any spam.', 'gravityforms' );
-				break;
+				case 'star':
+					$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any starred entries matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any starred entries.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					break;
 
-			case 'trash' :
-				$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any entries in the trash matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any entries in the trash.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-				break;
+				case 'spam':
+					$message = esc_html__( 'This form does not have any spam.', 'gravityforms' );
+					break;
 
-			default :
-				if ( isset( $_GET['field_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-					$message = esc_html__( 'This form does not have any entries matching the search criteria.', 'gravityforms' );
-				} elseif ( $this->filter ) {
-					$message = esc_html__( 'This form does not have any entries matching the selected filter.', 'gravityforms' );
-				} else {
-					$message = esc_html__( 'This form does not have any entries yet.', 'gravityforms' );
-				}
+				case 'trash':
+					$message = isset( $_GET['field_id'] ) ? esc_html__( 'This form does not have any entries in the trash matching the search criteria.', 'gravityforms' ) : esc_html__( 'This form does not have any entries in the trash.', 'gravityforms' ); // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+					break;
+
+				default:
+					if ( isset( $_GET['field_id'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+						$message = esc_html__( 'This form does not have any entries matching the search criteria.', 'gravityforms' );
+					} elseif ( $this->filter ) {
+						$message = esc_html__( 'This form does not have any entries matching the selected filter.', 'gravityforms' );
+					} else {
+						$message = esc_html__( 'This form does not have any entries yet.', 'gravityforms' );
+					}
+			}
+			echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- all instances of message are escaped above
 		}
-		echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- all instances of message are escaped above
 	}
 
 	/**

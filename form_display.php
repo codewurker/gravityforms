@@ -111,6 +111,9 @@ class GFFormDisplay {
 		GFCommon::log_debug( "GFFormDisplay::process_form(): Source page number: {$source_page_number}. Target page number: {$target_page}." );
 
 		$saving_for_later = rgpost( 'gform_save' ) ? true : false;
+		if ( $saving_for_later ) {
+			$files = self::sanitize_file_uploads_for_save( $form );
+		}
 
 		$is_valid = true;
 
@@ -434,6 +437,99 @@ class GFFormDisplay {
 		}
 
 		return $files;
+	}
+
+	/**
+	 * Sanitizes existing temporary file upload metadata before saving a draft submission.
+	 *
+	 * @since 2.10.5
+	 *
+	 * @param array $form The form currently being processed.
+	 *
+	 * @return array
+	 */
+	private static function sanitize_file_uploads_for_save( $form ) {
+		$form_id       = absint( rgar( $form, 'id' ) );
+		$upload_fields = GFCommon::get_fields_by_type( $form, array( 'fileupload' ) );
+
+		foreach ( $upload_fields as $field ) {
+			if ( ! $field instanceof GF_Field_FileUpload ) {
+				continue;
+			}
+
+			$field->formId = $form_id;
+			$files         = $field->get_submission_files();
+			$clean_files   = array(
+				'existing' => array(),
+				'new'      => array(),
+			);
+
+			foreach ( rgar( $files, 'existing', array() ) as $file ) {
+				if ( ! is_array( $file ) ) {
+					continue;
+				}
+
+				if ( isset( $file['url'] ) ) {
+					if ( $field->is_valid_populated_file_url( $file ) ) {
+						$clean_files['existing'][] = $file;
+					}
+
+					continue;
+				}
+
+				$temp_filename     = rgar( $file, 'temp_filename' );
+				$uploaded_filename = rgar( $file, 'uploaded_filename' );
+
+				if ( ! is_string( $temp_filename ) || ! is_string( $uploaded_filename ) ) {
+					continue;
+				}
+
+				$temp_filename     = sanitize_file_name( wp_basename( $temp_filename ) );
+				$uploaded_filename = sanitize_file_name( wp_basename( $uploaded_filename ) );
+
+				if ( empty( $temp_filename ) || empty( $uploaded_filename ) ) {
+					continue;
+				}
+
+				$file['temp_filename']     = $temp_filename;
+				$file['uploaded_filename'] = $uploaded_filename;
+
+				if ( $field->is_invalid_file( $file, false ) || self::is_invalid_file_upload_temp_filename( $temp_filename, $field ) ) {
+					continue;
+				}
+
+				$tmp_path = rgar( GFFormsModel::get_tmp_upload_location( $form_id ), 'path' );
+				if ( empty( $tmp_path ) || ! is_file( $tmp_path . $temp_filename ) ) {
+					continue;
+				}
+
+				$clean_files['existing'][] = $file;
+			}
+
+			$field->set_submission_files( $clean_files );
+		}
+
+		return rgar( GFFormsModel::$uploaded_files, $form_id, array() );
+	}
+
+	/**
+	 * Determines if the temporary upload filename is invalid for the supplied file upload field.
+	 *
+	 * @since 2.10.5
+	 *
+	 * @param string              $temp_filename The temporary upload filename.
+	 * @param GF_Field_FileUpload $field         The file upload field.
+	 *
+	 * @return bool
+	 */
+	private static function is_invalid_file_upload_temp_filename( $temp_filename, $field ) {
+		$allowed_extensions = $field->get_clean_allowed_extensions();
+
+		if ( empty( $allowed_extensions ) ) {
+			return GFCommon::file_name_has_disallowed_extension( $temp_filename );
+		}
+
+		return ! GFCommon::match_file_extension( $temp_filename, $allowed_extensions );
 	}
 
 	public static function get_state( $form, $field_values ) {

@@ -3601,18 +3601,31 @@ Content-Type: text/html;
 		return $time_format ? $time_format : 'H:i';
 	}
 
-	public static function get_selection_value( $value ) {
-
+	/**
+	 * Returns the value of the selected item. For pricing fields, returns the selected value without the price.
+	 *
+	 * @since 2.10.5 Added the $field parameter
+	 *
+	 * @param array|string $value The raw selected field value.
+	 * @param GF_Field     $field The selected field object.
+	 *
+	 * @return string Returns the selected value.
+	 */
+	public static function get_selection_value( $value, $field = null ) {
 		if ( is_null( $value ) ) {
 			return $value;
 		}
 
-		if ( ! is_array( $value ) ) {
-			$value = explode( '|', $value );
+		if ( is_array( $value ) ) {
+			return $value[0];
 		}
 
-		return $value[0];
+		if ( $field instanceof GF_Field && self::is_pricing_field( $field->type ) ) {
+			list( $name, $price ) = rgexplode( '|', $value, 2, true );
+			return $name;
+		}
 
+		return $value;
 	}
 
 	public static function selection_display( $value, $field, $currency = '', $use_text = false ) {
