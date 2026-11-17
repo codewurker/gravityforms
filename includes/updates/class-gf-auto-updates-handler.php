@@ -236,4 +236,82 @@ class GF_Auto_Updates_Handler {
 		$this->update_wp_option( $enabled );
 	}
 
+	/**
+	 * Initializes the GFAutoUpgrade class for inactive add-ons.
+	 *
+	 * @since 3.2.3
+	 *
+	 * @return void
+	 */
+	public function init_inactive_addon_updates() {
+		$versions = \GFCommon::get_version_info( true );
+
+		if ( empty( $versions['offerings'] ) || ! is_array( $versions['offerings'] ) ) {
+			return;
+		}
+
+		$plugins = \GFForms::get_installed_plugins();
+
+		foreach ( $plugins as $slug => $plugin ) {
+			if ( rgar( $plugin, 'is_active' ) || ! isset( $plugin['version'] ) || ! str_starts_with( $slug, 'gravityforms' ) ) {
+				continue;
+			}
+
+			$offering = rgar( $versions['offerings'], $slug );
+			if ( empty( $offering ) || ! is_array( $offering ) ) {
+				continue;
+			}
+
+			require_once GF_PLUGIN_DIR_PATH . 'includes/addon/class-gf-auto-upgrade.php';
+
+			$min_gf_version = $this->get_min_gf_version( rgar( $offering, 'minimum_requirements' ) );
+
+			new \GFAutoUpgrade(
+				$slug,
+				$plugin['version'],
+				$min_gf_version,
+				$plugin['name'],
+				WP_PLUGIN_DIR . DIRECTORY_SEPARATOR . $plugin['path'],
+				$plugin['path'],
+				'https://gravityforms.com',
+				version_compare( \GFForms::$version, $min_gf_version, '>=' ),
+				true
+			);
+		}
+	}
+
+	/**
+	 * Gets the minimum Gravity Forms version required for an offering from its minimum requirements data.
+	 *
+	 * @since 3.2.3
+	 *
+	 * @param array $minimum_requirements The minimum requirements for the offering.
+	 *
+	 * @return string
+	 */
+	private function get_min_gf_version( $minimum_requirements ) {
+		if ( empty( $minimum_requirements ) || ! is_array( $minimum_requirements ) ) {
+			return \GFForms::$version;
+		}
+
+		foreach ( $minimum_requirements as $requirement ) {
+			if ( rgar( $requirement, 'minimum_requirements_slug' ) !== 'gravityforms' ) {
+				continue;
+			}
+
+			$version = rgar( $requirement, 'minimum_requirements_version' );
+			if ( empty( $version ) ) {
+				return \GFForms::$version;
+			}
+
+			if ( $version === 'latest' ) {
+				return rgar( $requirement, 'minimum_requirements_version_latest', \GFForms::$version );
+			}
+
+			return $version;
+		}
+
+		return \GFForms::$version;
+	}
+
 }

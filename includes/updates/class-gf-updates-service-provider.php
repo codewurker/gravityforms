@@ -57,6 +57,7 @@ class GF_Auto_Updates_Service_Provider extends GF_Service_Provider {
 			$handler->activation_sync();
 		}
 
+		add_action( 'gform_post_loaded', array( $handler, 'init_inactive_addon_updates' ) );
 	}
 
 }
