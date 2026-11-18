@@ -237,6 +237,25 @@ class GF_Auto_Updates_Handler {
 	}
 
 	/**
+	 * Includes inactive add-ons in the plugin update check already running for Gravity Forms.
+	 *
+	 * Hooked to the same update-plugins transients as GFForms::check_update(). WordPress reads
+	 * those while checking for plugin updates, not on gform_post_loaded. Returning the transient
+	 * unchanged lets GFAutoUpgrade append each inactive add-on at the normal check priority.
+	 *
+	 * @since next
+	 *
+	 * @param object|false $update_data Update transient value.
+	 *
+	 * @return object|false
+	 */
+	public function include_inactive_addon_updates( $update_data ) {
+		$this->init_inactive_addon_updates();
+
+		return $update_data;
+	}
+
+	/**
 	 * Initializes the GFAutoUpgrade class for inactive add-ons.
 	 *
 	 * @since 3.2.3
@@ -244,6 +263,14 @@ class GF_Auto_Updates_Handler {
 	 * @return void
 	 */
 	public function init_inactive_addon_updates() {
+		static $initialized = false;
+
+		if ( $initialized ) {
+			return;
+		}
+
+		$initialized = true;
+
 		$versions = \GFCommon::get_version_info( true );
 
 		if ( empty( $versions['offerings'] ) || ! is_array( $versions['offerings'] ) ) {
@@ -266,7 +293,7 @@ class GF_Auto_Updates_Handler {
 
 			$min_gf_version = $this->get_min_gf_version( rgar( $offering, 'minimum_requirements' ) );
 
-			new \GFAutoUpgrade(
+			$upgrader = new \GFAutoUpgrade(
 				$slug,
 				$plugin['version'],
 				$min_gf_version,
@@ -277,6 +304,12 @@ class GF_Auto_Updates_Handler {
 				version_compare( \GFForms::$version, $min_gf_version, '>=' ),
 				true
 			);
+
+			// Update transients and changelog AJAX requests can run after init, so register the upgrader hooks now.
+			if ( did_action( 'init' ) ) {
+				remove_action( 'init', array( $upgrader, 'init' ) );
+				$upgrader->init();
+			}
 		}
 	}
 

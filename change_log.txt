@@ -1,3 +1,6 @@
+### 3.2.3.1
+- Fixed an issue where checking for updates to inactive add-ons made more requests to the Gravity Forms API than required.
+
 ### 3.2.3 | 2026-11-17
 - Added security enhancements.
 - Added a Large (mobile friendly) input size to the form block style settings for improved accessibility. 
